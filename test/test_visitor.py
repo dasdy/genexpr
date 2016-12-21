@@ -33,31 +33,31 @@ class TestAstNodeVisitor(TestCase):
         self.visitor = CounterVisitor()
 
     def test_visit_number(self):
-        node = NumberNode()
-        node.visit(self.visitor)
+        node = NumberNode(20)
+        node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'number': 1})
 
     def test_visit_funcall(self):
         node = FuncallNode()
-        node.visit(self.visitor)
+        node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'func': 1})
 
     def test_visit_name(self):
         node = NameNode()
-        node.visit(self.visitor)
+        node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'name': 1})
 
     def test_visit_power(self):
         node = PowerNode()
-        node.visit(self.visitor)
+        node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'power': 1})
 
     def test_visit_sum(self):
         node = SumNode()
-        node.visit(self.visitor)
+        node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'sum': 1})
 
     def test_visit_mult(self):
-        node = MultNode()
-        node.visit(self.visitor)
+        node = MultNode(20)
+        node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'mult': 1})

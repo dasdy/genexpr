@@ -8,6 +8,7 @@ atom -> integer | '(' expr ')'
 name -> string
 
 """
+from fractions import Fraction
 
 
 class AstNode:
@@ -20,12 +21,16 @@ class AstNode:
     def __str__(self):
         pass
 
-    def visit(self, visitor):
+    def accept(self, visitor):
         visitor.visit(self)
 
 
 class NumberNode(AstNode):
-    pass
+    def __init__(self, val):
+        self.val = val
+
+    def get_value(self):
+        return self.val
 
 
 class NameNode(AstNode):
@@ -36,8 +41,30 @@ class FuncallNode(AstNode):
     pass
 
 
+class MultSub(AstNode):
+    def __init__(self, sign, num):
+        self.sign = sign
+        self.num = num
+
+    def get_value(self):
+        if self.sign == '*':
+            return self.num
+        elif self.sign == '/':
+            return Fraction(1, self.num)
+        else:
+            raise Exception("unknown sign: " + self.sign)
+
+
 class MultNode(AstNode):
-    pass
+    def __init__(self, init_node, *rest):
+        self.init_node = init_node
+        self.rest_value = rest
+
+    def get_value(self):
+        init_val = self.init_node.get_value()
+        for c in self.rest_value:
+            init_val *= c.get_value()
+        return init_val
 
 
 class PowerNode(AstNode):
@@ -85,7 +112,7 @@ class AstNodeVisitor:
 
 
 def traverse_pre(expression, visitor):
-    expression.visit(visitor)
+    expression.accept(visitor)
     children = expression.get_children()
     if children:
         for c in children:
@@ -97,4 +124,4 @@ def traverse_post(expression, visitor):
     if children:
         for c in expression.get_children():
             traverse_post(c, visitor)
-    expression.visit(visitor)
+    expression.accept(visitor)

@@ -31,7 +31,7 @@ class TestTraversePre(TestCase):
         self.visitor = SequenceVisitor()
 
     def test_visit_number(self):
-        node = NumberNode()
+        node = NumberNode(20)
         traverse_pre(node, self.visitor)
         self.assertEqual(self.visitor.counts, ['number'])
 
@@ -56,7 +56,7 @@ class TestTraversePre(TestCase):
         self.assertEqual(self.visitor.counts, ['sum'])
 
     def test_visit_mult(self):
-        node = MultNode()
+        node = MultNode(20)
         traverse_pre(node, self.visitor)
         self.assertEqual(self.visitor.counts, ['mult'])
 
@@ -66,7 +66,7 @@ class TestTraversePost(TestCase):
         self.visitor = SequenceVisitor()
 
     def test_visit_number(self):
-        node = NumberNode()
+        node = NumberNode(20)
         traverse_post(node, self.visitor)
         self.assertEqual(self.visitor.counts, ['number'])
 
@@ -91,6 +91,6 @@ class TestTraversePost(TestCase):
         self.assertEqual(self.visitor.counts, ['sum'])
 
     def test_visit_mult(self):
-        node = MultNode()
+        node = MultNode(20)
         traverse_post(node, self.visitor)
         self.assertEqual(self.visitor.counts, ['mult'])
