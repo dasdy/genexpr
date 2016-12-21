@@ -3,6 +3,7 @@ from unittest import TestCase
 from collections import defaultdict
 
 from genast.ast import *
+from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num
 
 
 class CounterVisitor(AstNodeVisitor):
@@ -38,26 +39,26 @@ class TestAstNodeVisitor(TestCase):
         self.assertEqual(self.visitor.counts, {'number': 1})
 
     def test_visit_funcall(self):
-        node = FuncallNode()
+        node = FuncallNode('sin', sum_node_for_num(30))
         node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'func': 1})
 
     def test_visit_name(self):
-        node = NameNode()
+        node = NameNode('id')
         node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'name': 1})
 
     def test_visit_power(self):
-        node = PowerNode()
+        node = PowerNode(sum_node_for_num(20), sum_node_for_num(5))
         node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'power': 1})
 
     def test_visit_sum(self):
-        node = SumNode()
+        node = SumNode(mult_node_for_num(30), SumSub('+', sum_node_for_num(50)))
         node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'sum': 1})
 
     def test_visit_mult(self):
-        node = MultNode(20)
+        node = MultNode(power_node_for_num(20))
         node.accept(self.visitor)
         self.assertEqual(self.visitor.counts, {'mult': 1})

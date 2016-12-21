@@ -18,9 +18,6 @@ class AstNode:
     def get_children(self):
         pass
 
-    def __str__(self):
-        pass
-
     def accept(self, visitor):
         visitor.visit(self)
 
@@ -32,13 +29,30 @@ class NumberNode(AstNode):
     def get_value(self):
         return self.val
 
+    def __str__(self):
+        return str(self.val)
+
 
 class NameNode(AstNode):
-    pass
+    def __init__(self, val):
+        self.val = val
+
+    def __str__(self):
+        return str(self.val)
 
 
 class FuncallNode(AstNode):
-    pass
+    def __init__(self, func, *args):
+        self.val = func
+        self.args = args
+        if not func and len(args) > 1:
+            raise Exception("either function with expr*, or expr is allowed")
+
+    def __str__(self):
+        if self.val:
+            return "{}({})".format(str(self.val), *", ".join([str(x) for x in self.args]))
+        else:
+            return str(self.args[0])
 
 
 class MultSub(AstNode):
@@ -55,10 +69,24 @@ class MultSub(AstNode):
             raise Exception("unknown sign: " + self.sign)
 
 
-class MultNode(AstNode):
+class TailNode(AstNode):
     def __init__(self, init_node, *rest):
         self.init_node = init_node
         self.rest_value = rest
+
+    def get_children(self):
+        return [self.init_node] + list(self.rest_value)
+
+    def __str__(self):
+        init_val = str(self.init_node)
+        for c in self.rest_value:
+            init_val += str(c)
+        return init_val
+
+
+class MultNode(TailNode):
+    def __init__(self, init_node, *rest):
+        super().__init__(init_node, *rest)
 
     def get_value(self):
         init_val = self.init_node.get_value()
@@ -68,11 +96,59 @@ class MultNode(AstNode):
 
 
 class PowerNode(AstNode):
-    pass
+    def __init__(self, base, exp = None):
+        self.base = base
+        self.exp = exp
+
+    def get_value(self):
+        base_val = self.base.get_value()
+        if self.exp:
+            exp_val = self.exp.get_value()
+            base_to_pow = base_val ** abs(exp_val)
+            if exp_val < 0:
+                return Fraction(1, base_to_pow)
+            else:
+                return base_to_pow
+        return base_val
+
+    def get_children(self):
+        if not self.exp:
+            return [self.base]
+        return [self.base, self.exp]
+
+    def __str__(self):
+        base_str = str(self.base)
+        if not self.exp:
+            return base_str
+        return "{}^({})".format(base_str, self.exp.get_value)
 
 
-class SumNode(AstNode):
-    pass
+class SumSub(AstNode):
+    def __init__(self, sign, num):
+        self.sign = sign
+        self.num = num
+
+    def get_children(self):
+        return [self.num]
+
+    def get_value(self):
+        if self.sign == '+':
+            return self.num
+        elif self.sign == '-':
+            return -self.num
+        else:
+            raise Exception("unknown sign: " + self.sign)
+
+
+class SumNode(TailNode):
+    def __init__(self, init_node, *rest):
+        super().__init__(init_node, *rest)
+
+    def get_value(self):
+        init_val = self.init_node.get_value()
+        for c in self.rest_value:
+            init_val += c.get_value()
+        return init_val
 
 
 class AstNodeVisitor:
@@ -89,11 +165,21 @@ class AstNodeVisitor:
             self.visit_name(node)
         elif isinstance(node, FuncallNode):
             self.visit_funcall(node)
+        elif isinstance(node, SumSub):
+            self.visit_sum_sub(node)
+        elif isinstance(node, MultSub):
+            self.visit_mult_sub(node)
         else:
             raise Exception("Unknown node type: " + str(type(node)))
 
     def visit_sum(self, node):
         pass
+
+    def visit_sum_sub(self, node):
+        self.visit(node.num)
+
+    def visit_mult_sub(self, node):
+        self.visit(node.num)
 
     def visit_power(self, node):
         pass
