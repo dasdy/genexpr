@@ -21,6 +21,17 @@ class AstNode:
     def accept(self, visitor):
         visitor.visit(self)
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        if self.get_value() != other.get_value():
+            return False
+        ch_self = self.get_children()
+        ch_other = other.get_children()
+        if ch_self != ch_other:
+            return False
+        return True
+
 
 class NumberNode(AstNode):
     def __init__(self, val):
@@ -66,9 +77,9 @@ class MultSub(AstNode):
 
     def get_value(self):
         if self.sign == '*':
-            return self.num
+            return self.num.get_value()
         elif self.sign == '/':
-            return Fraction(1, self.num)
+            return Fraction(1, self.num.get_value())
         else:
             raise Exception("unknown sign: " + self.sign)
 
