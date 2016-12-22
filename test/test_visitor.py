@@ -1,8 +1,8 @@
+from collections import defaultdict
 from unittest import TestCase
 
-from collections import defaultdict
-
-from genast.ast import *
+from genast.AstNodeVisitor import AstNodeVisitor
+from genast.nodes import *
 from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num
 
 

@@ -1,4 +1,4 @@
-from genast.ast import *
+from genast.nodes import *
 
 
 def sum_node_for_num(num):

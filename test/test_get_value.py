@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from genast.ast import *
+from genast.nodes import *
 from test.utils import power_node_for_num, sum_node_for_num, mult_node_for_num, funcall_node_for_num
 
 

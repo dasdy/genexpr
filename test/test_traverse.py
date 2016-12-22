@@ -1,6 +1,8 @@
 from unittest import TestCase
 
-from genast.ast import *
+from genast.AstNodeVisitor import AstNodeVisitor
+from genast.nodes import *
+from genast.traverse import traverse_pre, traverse_post
 from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num, funcall_node_for_num
 
 
@@ -43,9 +45,9 @@ class TestTraversePre(TestCase):
         self.assertEqual(self.visitor.counts,  ['number_20'])
 
     def test_visit_funcall(self):
-        node = FuncallNode('sin', sum_node_for_num(30))
+        node = FuncallNode(NameNode('sin'), sum_node_for_num(30))
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['func_sin', 'sum', 'mult', 'func_', 'power', 'number_30'])
+        self.assertEqual(self.visitor.counts, ['func_sin', 'name', 'sum', 'mult', 'func_', 'power', 'number_30'])
 
     def test_visit_name(self):
         node = NameNode('id')
@@ -80,9 +82,9 @@ class TestTraversePost(TestCase):
         self.assertEqual(self.visitor.counts, ['number_20'])
 
     def test_visit_funcall(self):
-        node = FuncallNode('sin', sum_node_for_num(40))
+        node = FuncallNode(NameNode('sin'), sum_node_for_num(40))
         traverse_post(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['number_40', 'power', 'func_', 'mult', 'sum', 'func_sin'])
+        self.assertEqual(self.visitor.counts, ['name', 'number_40', 'power', 'func_', 'mult', 'sum', 'func_sin'])
 
     def test_visit_name(self):
         node = NameNode('id')
