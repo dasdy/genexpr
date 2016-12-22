@@ -1,3 +1,5 @@
+from copy import copy
+
 from genast.nodes import NumberNode, PowerNode, MultNode, SumNode, NameNode, FuncallNode, SumSub, MultSub
 
 
@@ -45,3 +47,29 @@ class AstNodeVisitor:
 
     def visit_name(self, node):
         pass
+
+
+class MapNodeVisitor(AstNodeVisitor):
+    def visit_mult(self, node):
+        return copy(node)
+
+    def visit_funcall(self, node):
+        return copy(node)
+
+    def visit_name(self, node):
+        return copy(node)
+
+    def visit_number(self, node):
+        return copy(node)
+
+    def visit_sum(self, node):
+        return copy(node)
+
+    def visit_power(self, node):
+        return copy(node)
+
+    def visit_mult_sub(self, node):
+        return copy(node)
+
+    def visit_sum_sub(self, node):
+        return copy(node)

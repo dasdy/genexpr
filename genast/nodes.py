@@ -13,13 +13,16 @@ from fractions import Fraction
 
 class AstNode:
     def get_value(self):
-        pass
+        raise Exception('not implemented')
 
     def get_children(self):
-        pass
+        return []
+
+    def set_children(self, children):
+        raise Exception('not implemented')
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -40,6 +43,9 @@ class NumberNode(AstNode):
     def get_value(self):
         return self.val
 
+    def set_children(self, children):
+        pass
+
     def __str__(self):
         return str(self.val)
 
@@ -55,7 +61,7 @@ class NameNode(AstNode):
 class FuncallNode(AstNode):
     def __init__(self, func, *args):
         self.val = func
-        self.args = args
+        self.args = list(args)
         if not func and len(args) > 1:
             raise Exception("either function with expr*, or expr is allowed")
 
@@ -64,6 +70,13 @@ class FuncallNode(AstNode):
             return "{}({})".format(str(self.val), *", ".join([str(x) for x in self.args]))
         else:
             return str(self.args[0])
+
+    def set_children(self, children):
+        if len(children) > 1:
+            self.val = children[0]
+            self.args = children[1:]
+        else:
+            self.args = children
 
     def get_value(self):
         if not self.val:
@@ -138,6 +151,12 @@ class PowerNode(AstNode):
         if not self.exp:
             return [self.base]
         return [self.base, self.exp]
+
+    def set_children(self, children):
+        if len(children) == 2:
+            self.base, self.exp = children
+        else:
+            self.base = children[0]
 
     def __str__(self):
         base_str = str(self.base)

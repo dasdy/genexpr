@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from genast.AstNodeVisitor import AstNodeVisitor
+from genast.AstNodeVisitor import AstNodeVisitor, MapNodeVisitor
 from genast.nodes import *
-from genast.traverse import traverse_pre, traverse_post
+from genast.traverse import traverse_pre, traverse_post, map_post
 from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num, funcall_node_for_num
 
 
@@ -42,7 +42,7 @@ class TestTraversePre(TestCase):
     def test_visit_number(self):
         node = NumberNode(20)
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts,  ['number_20'])
+        self.assertEqual(self.visitor.counts, ['number_20'])
 
     def test_visit_funcall(self):
         node = FuncallNode(NameNode('sin'), sum_node_for_num(30))
@@ -69,7 +69,7 @@ class TestTraversePre(TestCase):
     def test_visit_mult(self):
         node = MultNode(power_node_for_num(20))
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts,  ['mult', 'power', 'number_20'])
+        self.assertEqual(self.visitor.counts, ['mult', 'power', 'number_20'])
 
 
 class TestTraversePost(TestCase):
@@ -108,3 +108,22 @@ class TestTraversePost(TestCase):
         node = MultNode(power_node_for_num(20))
         traverse_post(node, self.visitor)
         self.assertEqual(self.visitor.counts, ['number_20', 'power', 'mult'])
+
+
+class NodeSubstitutor(MapNodeVisitor):
+    def visit_number(self, node):
+        return NumberNode(30)
+
+
+class TestTraverseMapPost(TestCase):
+    def test_substitute_number(self):
+        node = NumberNode(20)
+        new_node = map_post(node, NodeSubstitutor())
+        self.assertEqual(new_node, NumberNode(30))
+
+    def test_substitute_number2(self):
+        node = funcall_node_for_num(10)
+        new_node = map_post(node, NodeSubstitutor())
+        self.assertEqual(new_node, funcall_node_for_num(30))
+        self.assertEqual(node, funcall_node_for_num(10))
+
