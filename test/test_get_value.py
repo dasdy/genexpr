@@ -22,7 +22,9 @@ class TestGetValue(TestCase):
         self.assertEqual(30, node.get_value())
 
     def test_mult_value2(self):
-        node = MultNode(funcall_node_for_num(20), MultSub('*', 25), MultSub('/', 10))
+        node = MultNode(funcall_node_for_num(20),
+                        MultSub('*', funcall_node_for_num(25)),
+                        MultSub('/', funcall_node_for_num(10)))
         self.assertEqual(50, node.get_value())
 
     def test_sum_value(self):

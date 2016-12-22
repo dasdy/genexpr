@@ -69,6 +69,9 @@ class FuncallNode(AstNode):
         if not self.val:
             return self.args[0].get_value()
 
+    def get_children(self):
+        return self.args
+
 
 class MultSub(AstNode):
     def __init__(self, sign, num):
@@ -83,8 +86,11 @@ class MultSub(AstNode):
         else:
             raise Exception("unknown sign: " + self.sign)
 
+    def get_children(self):
+        return [self.num]
 
-class TailNode(AstNode):
+
+class HasTailNode(AstNode):
     def __init__(self, init_node, *rest):
         self.init_node = init_node
         self.rest_value = rest
@@ -99,7 +105,7 @@ class TailNode(AstNode):
         return init_val
 
 
-class MultNode(TailNode):
+class MultNode(HasTailNode):
     def __init__(self, init_node, *rest):
         super().__init__(init_node, *rest)
 
@@ -155,7 +161,7 @@ class SumSub(AstNode):
             raise Exception("unknown sign: " + self.sign)
 
 
-class SumNode(TailNode):
+class SumNode(HasTailNode):
     def __init__(self, init_node, *rest):
         super().__init__(init_node, *rest)
 
