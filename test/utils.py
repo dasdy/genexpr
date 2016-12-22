@@ -14,4 +14,6 @@ def funcall_node_for_num(num):
 
 
 def power_node_for_num(num, power=None):
+    if power:
+        power = sum_node_for_num(power)
     return PowerNode(NumberNode(num), power)

@@ -54,6 +54,10 @@ class FuncallNode(AstNode):
         else:
             return str(self.args[0])
 
+    def get_value(self):
+        if not self.val:
+            return self.args[0].get_value()
+
 
 class MultSub(AstNode):
     def __init__(self, sign, num):
@@ -133,9 +137,9 @@ class SumSub(AstNode):
 
     def get_value(self):
         if self.sign == '+':
-            return self.num
+            return self.num.get_value()
         elif self.sign == '-':
-            return -self.num
+            return -self.num.get_value()
         else:
             raise Exception("unknown sign: " + self.sign)
 
@@ -154,21 +158,21 @@ class SumNode(TailNode):
 class AstNodeVisitor:
     def visit(self, node):
         if isinstance(node, NumberNode):
-            self.visit_number(node)
+            return self.visit_number(node)
         elif isinstance(node, PowerNode):
-            self.visit_power(node)
+            return self.visit_power(node)
         elif isinstance(node, MultNode):
-            self.visit_mult(node)
+            return self.visit_mult(node)
         elif isinstance(node, SumNode):
-            self.visit_sum(node)
+            return self.visit_sum(node)
         elif isinstance(node, NameNode):
-            self.visit_name(node)
+            return self.visit_name(node)
         elif isinstance(node, FuncallNode):
-            self.visit_funcall(node)
+            return self.visit_funcall(node)
         elif isinstance(node, SumSub):
-            self.visit_sum_sub(node)
+            return self.visit_sum_sub(node)
         elif isinstance(node, MultSub):
-            self.visit_mult_sub(node)
+            return self.visit_mult_sub(node)
         else:
             raise Exception("Unknown node type: " + str(type(node)))
 
@@ -176,10 +180,10 @@ class AstNodeVisitor:
         pass
 
     def visit_sum_sub(self, node):
-        self.visit(node.num)
+        return self.visit(node.num)
 
     def visit_mult_sub(self, node):
-        self.visit(node.num)
+        return self.visit(node.num)
 
     def visit_power(self, node):
         pass
