@@ -13,13 +13,13 @@ from fractions import Fraction
 
 class AstNode:
     def get_value(self):
-        raise Exception('not implemented')
+        raise Exception('not implemented' + str(type(self)))
 
     def get_children(self):
         return []
 
     def set_children(self, children):
-        raise Exception('not implemented')
+        raise Exception('not implemented for: ' + str(type(self)))
 
     def accept(self, visitor):
         return visitor.visit(self)
@@ -94,15 +94,18 @@ class MultSub(AstNode):
         self.num = num
 
     def get_value(self):
-        if self.sign == '*':
+        if self.sign.sign == '*':
             return self.num.get_value()
-        elif self.sign == '/':
+        elif self.sign.sign == '/':
             return Fraction(1, self.num.get_value())
         else:
             raise Exception("unknown sign: " + self.sign)
 
     def get_children(self):
-        return [self.num]
+        return [self.sign, self.num]
+
+    def set_children(self, children):
+        self.sign, self.num = children
 
 
 class HasTailNode(AstNode):
@@ -118,6 +121,12 @@ class HasTailNode(AstNode):
         for c in self.rest_value:
             init_val += str(c)
         return init_val
+
+    def set_children(self, children):
+        if len(children) > 1:
+            self.init_node, *self.rest_value = children
+        else:
+            self.init_node = children[0]
 
 
 class MultNode(HasTailNode):
@@ -165,21 +174,38 @@ class PowerNode(AstNode):
         return "{}^({})".format(base_str, self.exp.get_value)
 
 
+class SignNode(AstNode):
+    def __init__(self, sign):
+        self.sign = sign
+
+    def get_value(self):
+        return self.sign
+
+    def get_children(self):
+        return []
+
+    def set_children(self, children):
+        pass
+
+
 class SumSub(AstNode):
     def __init__(self, sign, num):
         self.sign = sign
         self.num = num
 
     def get_children(self):
-        return [self.num]
+        return [self.sign, self.num]
 
     def get_value(self):
-        if self.sign == '+':
+        if self.sign.sign == '+':
             return self.num.get_value()
-        elif self.sign == '-':
+        elif self.sign.sign == '-':
             return -self.num.get_value()
         else:
-            raise Exception("unknown sign: " + self.sign)
+            raise Exception("unknown sign: " + self.sign.sign)
+
+    def set_children(self, children):
+        self.sign, self.num = children
 
 
 class SumNode(HasTailNode):

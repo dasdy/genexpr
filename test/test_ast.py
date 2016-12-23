@@ -17,11 +17,11 @@ class TestAstNode(TestCase):
 
     def test_eq3(self):
         node1 = MultNode(funcall_node_for_num(20),
-                         MultSub('*', power_node_for_num(20)),
-                         MultSub('/', power_node_for_num(10)))
+                         MultSub(SignNode('*'), power_node_for_num(20)),
+                         MultSub(SignNode('/'), power_node_for_num(10)))
         node2 = MultNode(funcall_node_for_num(20),
-                         MultSub('*', power_node_for_num(20)),
-                         MultSub('/', power_node_for_num(10)))
+                         MultSub(SignNode('*'), power_node_for_num(20)),
+                         MultSub(SignNode('/'), power_node_for_num(10)))
         self.assertEqual(node1, node2)
 
     def test_eq4(self):
@@ -36,10 +36,10 @@ class TestAstNode(TestCase):
 
     def test_eq6(self):
         node1 = MultNode(funcall_node_for_num(20),
-                         MultSub('*', power_node_for_num(23)),
-                         MultSub('/', power_node_for_num(10)))
+                         MultSub(SignNode('*'), power_node_for_num(23)),
+                         MultSub(SignNode('/'), power_node_for_num(10)))
         node2 = MultNode(funcall_node_for_num(20),
-                         MultSub('*', power_node_for_num(20)),
-                         MultSub('/', power_node_for_num(10)))
+                         MultSub(SignNode('*'), power_node_for_num(20)),
+                         MultSub(SignNode('/'), power_node_for_num(10)))
         self.assertNotEqual(node1, node2)
 

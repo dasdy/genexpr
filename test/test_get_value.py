@@ -23,8 +23,8 @@ class TestGetValue(TestCase):
 
     def test_mult_value2(self):
         node = MultNode(funcall_node_for_num(20),
-                        MultSub('*', funcall_node_for_num(25)),
-                        MultSub('/', funcall_node_for_num(10)))
+                        MultSub(SignNode('*'), funcall_node_for_num(25)),
+                        MultSub(SignNode('/'), funcall_node_for_num(10)))
         self.assertEqual(50, node.get_value())
 
     def test_sum_value(self):
@@ -33,8 +33,8 @@ class TestGetValue(TestCase):
 
     def test_sum_value2(self):
         node = SumNode(mult_node_for_num(20),
-                       SumSub('+', mult_node_for_num(20)),
-                       SumSub('-', mult_node_for_num(10)))
+                       SumSub(SignNode('+'), mult_node_for_num(20)),
+                       SumSub(SignNode('-'), mult_node_for_num(10)))
         self.assertEqual(30, node.get_value())
 
     def test_pow_value2(self):

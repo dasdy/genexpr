@@ -1,6 +1,6 @@
 from copy import copy
 
-from genast.nodes import NumberNode, PowerNode, MultNode, SumNode, NameNode, FuncallNode, SumSub, MultSub
+from genast.nodes import NumberNode, PowerNode, MultNode, SumNode, NameNode, FuncallNode, SumSub, MultSub, SignNode
 
 
 class AstNodeVisitor:
@@ -21,6 +21,8 @@ class AstNodeVisitor:
             return self.visit_sum_sub(node)
         elif isinstance(node, MultSub):
             return self.visit_mult_sub(node)
+        elif isinstance(node, SignNode):
+            return self.visit_sign(node)
         else:
             raise Exception("Unknown node type: " + str(type(node)))
 
@@ -46,6 +48,9 @@ class AstNodeVisitor:
         pass
 
     def visit_name(self, node):
+        pass
+
+    def visit_sign(self,node):
         pass
 
 

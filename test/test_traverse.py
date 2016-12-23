@@ -34,6 +34,9 @@ class SequenceVisitor(AstNodeVisitor):
     def visit_sum_sub(self, node):
         self.counts.append('sum-sub')
 
+    def visit_sign(self, node):
+        self.counts.append('sign')
+
 
 class TestTraversePre(TestCase):
     def setUp(self):
@@ -47,7 +50,7 @@ class TestTraversePre(TestCase):
     def test_visit_funcall(self):
         node = FuncallNode(NameNode('sin'), sum_node_for_num(30))
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['func_sin', 'name', 'sum', 'mult', 'func_', 'power', 'number_30'])
+        self.assertEqual(self.visitor.counts, ['func_sin', 'name', 'sum', 'mult', 'power', 'func_', 'number_30'])
 
     def test_visit_name(self):
         node = NameNode('id')
@@ -57,19 +60,19 @@ class TestTraversePre(TestCase):
     def test_visit_power(self):
         node = PowerNode(sum_node_for_num(20), sum_node_for_num(5))
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['power', 'sum', 'mult', 'func_', 'power',
-                                               'number_20', 'sum', 'mult', 'func_', 'power', 'number_5'])
+        self.assertEqual(self.visitor.counts, ['power', 'sum', 'mult', 'power','func_',
+                                               'number_20', 'sum', 'mult', 'power','func_',  'number_5'])
 
     def test_visit_sum(self):
-        node = SumNode(mult_node_for_num(30), SumSub('+', sum_node_for_num(50)))
+        node = SumNode(mult_node_for_num(30), SumSub(SignNode('+'), sum_node_for_num(50)))
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['sum', 'mult', 'func_', 'power', 'number_30',
-                                               'sum-sub', 'sum', 'mult', 'func_', 'power', 'number_50'])
+        self.assertEqual(self.visitor.counts, ['sum', 'mult', 'power', 'func_', 'number_30',
+                                               'sum-sub', 'sign', 'sum', 'mult', 'power','func_',  'number_50'])
 
     def test_visit_mult(self):
         node = MultNode(power_node_for_num(20))
         traverse_pre(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['mult', 'power', 'number_20'])
+        self.assertEqual(self.visitor.counts, ['mult', 'power', 'func_', 'number_20'])
 
 
 class TestTraversePost(TestCase):
@@ -84,7 +87,7 @@ class TestTraversePost(TestCase):
     def test_visit_funcall(self):
         node = FuncallNode(NameNode('sin'), sum_node_for_num(40))
         traverse_post(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['name', 'number_40', 'power', 'func_', 'mult', 'sum', 'func_sin'])
+        self.assertEqual(self.visitor.counts, ['name', 'number_40', 'func_', 'power',  'mult', 'sum', 'func_sin'])
 
     def test_visit_name(self):
         node = NameNode('id')
@@ -94,36 +97,51 @@ class TestTraversePost(TestCase):
     def test_visit_power(self):
         node = PowerNode(funcall_node_for_num(20), sum_node_for_num(4))
         traverse_post(node, self.visitor)
-
-        self.assertEqual(self.visitor.counts, ['number_20', 'power', 'func_', 'number_4',
-                                               'power', 'func_', 'mult', 'sum', 'power'])
+        print(self.visitor.counts)
+        self.assertEqual(self.visitor.counts, ['number_20', 'func_', 'number_4',
+                                               'func_', 'power', 'mult', 'sum', 'power'])
 
     def test_visit_sum(self):
-        node = SumNode(mult_node_for_num(30), SumSub('+', mult_node_for_num(10)))
+        node = SumNode(mult_node_for_num(30), SumSub(SignNode('+'), mult_node_for_num(10)))
         traverse_post(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['number_30', 'power', 'func_', 'mult', 'number_10',
-                                               'power', 'func_', 'mult', 'sum-sub', 'sum'])
+        print(self.visitor.counts)
+        self.assertEqual(self.visitor.counts, ['number_30', 'func_', 'power', 'mult', 'sign', 'number_10',
+                                               'func_', 'power', 'mult', 'sum-sub', 'sum'])
 
     def test_visit_mult(self):
         node = MultNode(power_node_for_num(20))
         traverse_post(node, self.visitor)
-        self.assertEqual(self.visitor.counts, ['number_20', 'power', 'mult'])
+        self.assertEqual(self.visitor.counts, ['number_20', 'func_', 'power', 'mult'])
 
 
-class NodeSubstitutor(MapNodeVisitor):
+class Num2NumSubstitutor(MapNodeVisitor):
     def visit_number(self, node):
         return NumberNode(30)
+
+
+class PlusOneSubstitutor(MapNodeVisitor):
+    def visit_number(self, node):
+        current_num = node.val
+        return SumNode(mult_node_for_num(current_num), SumSub(SignNode('+'), mult_node_for_num(1)))
 
 
 class TestTraverseMapPost(TestCase):
     def test_substitute_number(self):
         node = NumberNode(20)
-        new_node = map_post(node, NodeSubstitutor())
+        new_node = map_post(node, Num2NumSubstitutor())
         self.assertEqual(new_node, NumberNode(30))
 
     def test_substitute_number2(self):
         node = funcall_node_for_num(10)
-        new_node = map_post(node, NodeSubstitutor())
+        new_node = map_post(node, Num2NumSubstitutor())
         self.assertEqual(new_node, funcall_node_for_num(30))
         self.assertEqual(node, funcall_node_for_num(10))
 
+    def test_substitute_number_with_expr(self):
+        node = mult_node_for_num(10)
+        new_node = map_post(node, PlusOneSubstitutor())
+        self.assertEqual(node, mult_node_for_num(10))
+        expected = MultNode(
+            PowerNode(FuncallNode(None, SumNode(mult_node_for_num(10), SumSub(SignNode('+'), mult_node_for_num(1))))))
+        self.assertEqual(new_node, expected)
+        self.assertEqual(new_node.get_value(), 11)
