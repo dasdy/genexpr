@@ -9,6 +9,7 @@ name -> string
 
 """
 from fractions import Fraction
+from functools import reduce
 
 
 class AstNode:
@@ -22,7 +23,7 @@ class AstNode:
         raise Exception('not implemented for: ' + str(type(self)))
 
     def accept(self, visitor):
-        return visitor.visit(self)
+        raise Exception("cannot accept visitor: " + str(type(self)))
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -49,6 +50,9 @@ class NumberNode(AstNode):
     def __str__(self):
         return str(self.val)
 
+    def accept(self, visitor):
+        return visitor.visit_number(self)
+
 
 class NameNode(AstNode):
     def __init__(self, val):
@@ -56,6 +60,9 @@ class NameNode(AstNode):
 
     def __str__(self):
         return str(self.val)
+
+    def accept(self, visitor):
+        return visitor.visit_name(self)
 
 
 class FuncallNode(AstNode):
@@ -87,25 +94,34 @@ class FuncallNode(AstNode):
             return [self.val] + list(self.args)
         return self.args
 
+    def accept(self, visitor):
+        return visitor.visit_funcall(self)
+
 
 class MultSub(AstNode):
-    def __init__(self, sign, num):
+    def __init__(self, sign, pow):
         self.sign = sign
-        self.num = num
+        self.pow = pow
 
     def get_value(self):
         if self.sign.sign == '*':
-            return self.num.get_value()
+            return self.pow.get_value()
         elif self.sign.sign == '/':
-            return Fraction(1, self.num.get_value())
+            return Fraction(1, self.pow.get_value())
         else:
             raise Exception("unknown sign: " + self.sign)
 
     def get_children(self):
-        return [self.sign, self.num]
+        return [self.sign, self.pow]
 
     def set_children(self, children):
-        self.sign, self.num = children
+        self.sign, self.pow = children
+
+    def accept(self, visitor):
+        return visitor.visit_mult_sub(self)
+
+    def __str__(self):
+        return f"{str(self.sign)}{str(self.pow)}"
 
 
 class HasTailNode(AstNode):
@@ -139,9 +155,16 @@ class MultNode(HasTailNode):
             init_val *= c.get_value()
         return init_val
 
+    def accept(self, visitor):
+        return visitor.visit_mult(self)
+
+    def __str__(self):
+        init = str(self.init_node)
+        return reduce(lambda acc, x: acc + str(x), self.rest_value, init)
+
 
 class PowerNode(AstNode):
-    def __init__(self, base, exp = None):
+    def __init__(self, base, exp=None):
         self.base = base
         self.exp = exp
 
@@ -167,11 +190,14 @@ class PowerNode(AstNode):
         else:
             self.base = children[0]
 
+    def accept(self, visitor):
+        return visitor.visit_power(self)
+
     def __str__(self):
         base_str = str(self.base)
         if not self.exp:
             return base_str
-        return "{}^({})".format(base_str, self.exp.get_value)
+        return f"{base_str}^({str(self.exp)})"
 
 
 class SignNode(AstNode):
@@ -187,25 +213,37 @@ class SignNode(AstNode):
     def set_children(self, children):
         pass
 
+    def accept(self, visitor):
+        return visitor.visit_sign(self)
+
+    def __str__(self):
+        return self.sign
+
 
 class SumSub(AstNode):
-    def __init__(self, sign, num):
+    def __init__(self, sign, mult):
         self.sign = sign
-        self.num = num
+        self.mult = mult
 
     def get_children(self):
-        return [self.sign, self.num]
+        return [self.sign, self.mult]
 
     def get_value(self):
         if self.sign.sign == '+':
-            return self.num.get_value()
+            return self.mult.get_value()
         elif self.sign.sign == '-':
-            return -self.num.get_value()
+            return -self.mult.get_value()
         else:
             raise Exception("unknown sign: " + self.sign.sign)
 
+    def accept(self, visitor):
+        return visitor.visit_sum_sub(self)
+
     def set_children(self, children):
-        self.sign, self.num = children
+        self.sign, self.mult = children
+
+    def __str__(self):
+        return f"{str(self.sign)}{str(self.mult)}"
 
 
 class SumNode(HasTailNode):
@@ -217,3 +255,11 @@ class SumNode(HasTailNode):
         for c in self.rest_value:
             init_val += c.get_value()
         return init_val
+
+    def accept(self, visitor):
+        return visitor.visit_sum(self)
+
+    def __str__(self):
+        init = str(self.init_node)
+        return reduce(lambda acc, x: acc + str(init), self.rest_value, init)
+

@@ -43,3 +43,6 @@ class TestAstNode(TestCase):
                          MultSub(SignNode('/'), power_node_for_num(10)))
         self.assertNotEqual(node1, node2)
 
+    def test_str(self):
+        self.assertEqual(str(NumberNode(20)), "20")
+        self.assertEqual(str(power_node_for_num(20, 10)), "20^(10)")
