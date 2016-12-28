@@ -125,6 +125,12 @@ class PlusOneSubstitutor(MapNodeVisitor):
         return SumNode(mult_node_for_num(current_num), SumSub(SignNode('+'), mult_node_for_num(1)))
 
 
+class MultByTwoSubstitutor(MapNodeVisitor):
+    def visit_mult(self, node):
+        new_rest = list(node.rest_value) + [MultSub(SignNode('*'), power_node_for_num(2))]
+        return MultNode(node.init_node, *new_rest)
+
+
 class TestTraverseMapPost(TestCase):
     def test_substitute_number(self):
         node = NumberNode(20)
@@ -145,3 +151,9 @@ class TestTraverseMapPost(TestCase):
             PowerNode(FuncallNode(None, SumNode(mult_node_for_num(10), SumSub(SignNode('+'), mult_node_for_num(1))))))
         self.assertEqual(new_node, expected)
         self.assertEqual(new_node.get_value(), 11)
+
+    def test_add_mult_by_two(self):
+        node = mult_node_for_num(20)
+        new_node = map_post(node, MultByTwoSubstitutor())
+        self.assertEqual(node, mult_node_for_num(20))
+        self.assertEqual(new_node, MultNode(power_node_for_num(20), MultSub(SignNode('*'), power_node_for_num(2))))
