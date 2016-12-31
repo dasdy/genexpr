@@ -261,5 +261,5 @@ class SumNode(HasTailNode):
 
     def __str__(self):
         init = str(self.init_node)
-        return reduce(lambda acc, x: acc + str(init), self.rest_value, init)
+        return reduce(lambda acc, x: acc + str(x), self.rest_value, init)
 
