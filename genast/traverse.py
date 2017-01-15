@@ -2,11 +2,13 @@ from copy import copy
 
 
 def traverse_pre(expression, visitor):
-    expression.accept(visitor)
-    children = expression.get_children()
-    if children:
-        for c in children:
-            traverse_pre(c, visitor)
+    if not visitor.control.should_skip(expression):
+        expression.accept(visitor)
+        if not visitor.control.should_skip():
+            children = expression.get_children()
+            if children:
+                for c in children:
+                    traverse_pre(c, visitor)
 
 
 def traverse_post(expression, visitor):

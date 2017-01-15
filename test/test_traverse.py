@@ -3,11 +3,13 @@ from unittest import TestCase
 from genast.AstNodeVisitor import AstNodeVisitor, MapNodeVisitor
 from genast.nodes import *
 from genast.traverse import traverse_pre, traverse_post, map_post
-from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num, funcall_node_for_num
+from genast.wrappers import expr, mult_sub
+from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num, funcall
 
 
 class SequenceVisitor(AstNodeVisitor):
     def __init__(self):
+        super().__init__()
         self.counts = []
 
     def visit_funcall(self, node):
@@ -95,7 +97,7 @@ class TestTraversePost(TestCase):
         self.assertEqual(self.visitor.counts, ['name'])
 
     def test_visit_power(self):
-        node = PowerNode(funcall_node_for_num(20), sum_node_for_num(4))
+        node = PowerNode(funcall(20), sum_node_for_num(4))
         traverse_post(node, self.visitor)
         print(self.visitor.counts)
         self.assertEqual(self.visitor.counts, ['number_20', 'func_', 'number_4',
@@ -138,10 +140,10 @@ class TestTraverseMapPost(TestCase):
         self.assertEqual(new_node, NumberNode(30))
 
     def test_substitute_number2(self):
-        node = funcall_node_for_num(10)
+        node = funcall(10)
         new_node = map_post(node, Num2NumSubstitutor())
-        self.assertEqual(new_node, funcall_node_for_num(30))
-        self.assertEqual(node, funcall_node_for_num(10))
+        self.assertEqual(new_node, funcall(30))
+        self.assertEqual(node, funcall(10))
 
     def test_substitute_number_with_expr(self):
         node = mult_node_for_num(10)
@@ -157,3 +159,30 @@ class TestTraverseMapPost(TestCase):
         new_node = map_post(node, MultByTwoSubstitutor())
         self.assertEqual(node, mult_node_for_num(20))
         self.assertEqual(new_node, MultNode(power_node_for_num(20), MultSub(SignNode('*'), power_node_for_num(2))))
+
+
+class HeadSequenceVisitor(SequenceVisitor):
+    def visit_mult(self, node):
+        self.control.skip_children()
+        SequenceVisitor.visit_mult(self, node)
+
+
+class SkipPowerNodes(SequenceVisitor):
+    def visit_power(self, node):
+        self.control.skip_children(node.exp)
+        SequenceVisitor.visit_power(self, node)
+
+
+class StopTraverseTests(TestCase):
+    def test_stop_at_root(self):
+        visitor = HeadSequenceVisitor()
+        node = mult_node_for_num(30)
+        traverse_pre(node, visitor)
+        print(visitor.counts)
+        self.assertEqual(visitor.counts, ['mult'])
+
+    def test_skip_power(self):
+        visitor = SkipPowerNodes()
+        node = PowerNode(funcall(20), expr(10, [mult_sub('*', 3)]))
+        traverse_pre(node, visitor)
+        self.assertEqual(visitor.counts, ['power', 'func_', 'number_20'])

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from genast.nodes import *
-from test.utils import funcall_node_for_num, power_node_for_num
+from test.utils import funcall, power_node_for_num
 
 
 class TestAstNode(TestCase):
@@ -11,15 +11,15 @@ class TestAstNode(TestCase):
         self.assertEqual(node1, node2)
 
     def test_eq2(self):
-        node1 = funcall_node_for_num(30)
-        node2 = funcall_node_for_num(30)
+        node1 = funcall(30)
+        node2 = funcall(30)
         self.assertEqual(node1, node2)
 
     def test_eq3(self):
-        node1 = MultNode(funcall_node_for_num(20),
+        node1 = MultNode(funcall(20),
                          MultSub(SignNode('*'), power_node_for_num(20)),
                          MultSub(SignNode('/'), power_node_for_num(10)))
-        node2 = MultNode(funcall_node_for_num(20),
+        node2 = MultNode(funcall(20),
                          MultSub(SignNode('*'), power_node_for_num(20)),
                          MultSub(SignNode('/'), power_node_for_num(10)))
         self.assertEqual(node1, node2)
@@ -31,14 +31,14 @@ class TestAstNode(TestCase):
 
     def test_eq5(self):
         node1 = NumberNode(20)
-        node2 = MultNode(funcall_node_for_num(20), MultSub('*', 25), MultSub('/', 10))
+        node2 = MultNode(funcall(20), MultSub('*', 25), MultSub('/', 10))
         self.assertNotEqual(node1, node2)
 
     def test_eq6(self):
-        node1 = MultNode(funcall_node_for_num(20),
+        node1 = MultNode(funcall(20),
                          MultSub(SignNode('*'), power_node_for_num(23)),
                          MultSub(SignNode('/'), power_node_for_num(10)))
-        node2 = MultNode(funcall_node_for_num(20),
+        node2 = MultNode(funcall(20),
                          MultSub(SignNode('*'), power_node_for_num(20)),
                          MultSub(SignNode('/'), power_node_for_num(10)))
         self.assertNotEqual(node1, node2)

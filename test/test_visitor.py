@@ -8,6 +8,7 @@ from test.utils import sum_node_for_num, mult_node_for_num, power_node_for_num
 
 class CounterVisitor(AstNodeVisitor):
     def __init__(self):
+        super().__init__()
         self.counts = defaultdict(lambda: 0)
 
     def visit_funcall(self, node):
