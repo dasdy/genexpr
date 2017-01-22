@@ -8,6 +8,7 @@ atom -> integer | '(' expr ')'
 name -> string
 
 """
+import re
 from fractions import Fraction
 from functools import reduce
 
@@ -243,7 +244,12 @@ class SumSub(AstNode):
         self.sign, self.mult = children
 
     def __str__(self):
-        return f"{str(self.sign)}{str(self.mult)}"
+        child_str = str(self.mult)
+        is_simple = re.fullmatch(r"[+\-*/]?([0-9a-zA-Z]+)", child_str)
+        if is_simple:
+            return f"{str(self.sign)}{child_str}"
+        else:
+            return f"{str(self.sign)}({child_str})"
 
 
 class SumNode(HasTailNode):
@@ -261,5 +267,9 @@ class SumNode(HasTailNode):
 
     def __str__(self):
         init = str(self.init_node)
+        is_simple = re.fullmatch(r"[+\-*/]?([0-9a-zA-Z]+)", init)
+        if not is_simple:
+            init = "(" + init + ")"
+
         return reduce(lambda acc, x: acc + str(x), self.rest_value, init)
 
